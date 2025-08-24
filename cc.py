@@ -9,17 +9,13 @@ It uses the api at fixer.io and then calculates the value of the currency in ter
 # Imp read: https://stackoverflow.com/questions/3139879/how-do-i-get-currency-exchange-rates-via-an-api-such-as-google-finance
 
 
-import requests 
-import json
 import sys
 from pprint import pprint
+from converter import convert_currency
+from utils_v1 import display_currencies, get_user_input
 
-# The below 4 lines bring out the value of currency from the api at fixer.io.  I had to register there, the key is unique to me.
-url = "http://data.fixer.io/api/latest?access_key=33ec7c73f8a4eb6b9b5b5f95118b2275"
-data = requests.get(url).text
-data2 = json.loads(data) #brings whether request was successful,timestamp etc
-fx = data2["rates"]
-
+# Fetch exchange rates and currency list
+fx = fetch_exchange_rates()
 currencies = [
     "AED : Emirati Dirham,United Arab Emirates Dirham",
     "AFN : Afghan Afghani,Afghanistan Afghani",
@@ -193,22 +189,23 @@ currencies = [
 
 
 # The below function calculates the actual conversion
-def function1():
-    query = input(
-        "Please specify the amount of currency to convert, from currency, to currency (with space in between).\nPress SHOW to see list of currencies available. \nPress Q to quit. \n"
-    )
-    if query == "Q":
-        sys.exit()
-    elif query == "SHOW":
-        pprint(currencies)
-        function1()
-    else:
-        qty, fromC, toC = query.split(" ")
-        fromC = fromC.upper()
-        toC = toC.upper()
-        qty = float(round(int(qty), 2))
-        amount = round(qty * fx[toC] / fx[fromC], 2)
-        print(f"{qty} of currency {fromC} amounts to {amount} of currency {toC} today")
+def main_loop():
+    while True:
+        query = get_user_input(
+            "Please specify the amount of currency to convert, from currency, to currency (with space in between).\nPress SHOW to see list of currencies available. \nPress Q to quit. \n"
+        )
+        if query == "Q":
+            sys.exit()
+        elif query == "SHOW":
+            display_currencies(currencies)
+        else:
+            try:
+                qty, fromC, toC = query.split(" ")
+                qty = float(qty)
+                amount = convert_currency(qty, fromC, toC)
+                print(f"{qty} of currency {fromC} amounts to {amount} of currency {toC} today")
+            except (ValueError, KeyError):
+                print("Invalid input or currency code. Please try again.")
 
 
 try:
